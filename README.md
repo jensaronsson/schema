@@ -1,2 +1,0 @@
-# schema
-Created with CodeSandbox
