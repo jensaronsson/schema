@@ -6,24 +6,33 @@ import { Box, Flex } from "grid-styled";
 import { DateTime } from "luxon";
 import { createTimeLine, formatTime } from "./helpers";
 import events from "./events";
+import TimeLine from "./components/Timeline";
+
 injectGlobal`
  html * {
   box-sizing: border-box;
  }
 `;
+
 const timeOffsetInPx = 30;
-const timeBlockLengthInPx = 50;
+const timeBlockLengthInPx = 100;
 const timelineInterval = 60;
 const start = new Date();
 start.setHours(8);
 start.setMinutes(0);
 const end = new Date();
 end.setDate(end.getDate() + 1);
-end.setHours(3);
+end.setHours(5);
 end.setMinutes(0);
-let timeline = createTimeLine(new Date(start), end, timelineInterval).map(
-  formatTime
-);
+
+let nStart = new Date(start.getTime());
+let nEnd = new Date(end.getTime());
+let timeline = createTimeLine(
+  new Date(start),
+  new Date(end),
+  timelineInterval
+).map(formatTime);
+// <TimeLine startTime="10:00" endTime="03:00" intervalInMinutes="60" />
 // Toggla dagar
 // Kolla diff funktionerna
 // Fixa eventkomponent
@@ -62,8 +71,8 @@ class SceneBlock extends React.Component {
     return (diff || 0) * (timeBlockLengthInPx / timelineInterval);
   }
   getEventLengthInPx(start, end) {
-    let diff = end.diff(start, "minutes").values.minutes;
-    return diff || 0;
+    let diff = end.diff(start, "minutes").toObject().minutes;
+    return (diff || 0) * (timeBlockLengthInPx / timelineInterval);
   }
   render() {
     const { expanded, events } = this.props;
@@ -88,7 +97,7 @@ class SceneBlock extends React.Component {
                   top: `${timeOffsetInPx +
                     this.getDiffOffsetInPx(
                       start,
-                      start.set({ hour: 8 }),
+                      start.set({ hour: 8, minutes: 0 }),
                       name
                     )}px `
                 }}
@@ -115,7 +124,7 @@ const formatEvents = events =>
 class App extends React.Component {
   state = {
     active: "stora",
-    scenes: ["stora", "klippan", "bryggan"],
+    scenes: ["stora", "klippan", "bryggan", "satelliten"],
     events: formatEvents(this.props.events),
     day: DateTime.local(2018, 8, 30)
   };
@@ -130,18 +139,25 @@ class App extends React.Component {
         <Flex bg="black">
           <Flex flexDirection="column">
             <Filler height={timeOffsetInPx} />
-            {timeline.map((x, i) => (
-              <Box
-                color="white"
-                p={1}
-                css={{
-                  height: timeBlockLengthInPx + "px",
-                  borderBottom: "1px solid white"
-                }}
-              >
-                {x}
-              </Box>
-            ))}
+            <TimeLine
+              formatter={formatTime}
+              fromTime={nStart}
+              toTime={nEnd}
+              interval={60}
+            >
+              {(x, i) => (
+                <Box
+                  color="white"
+                  p={1}
+                  css={{
+                    height: timeBlockLengthInPx + "px",
+                    borderBottom: "1px solid white"
+                  }}
+                >
+                  {x}
+                </Box>
+              )}
+            </TimeLine>
           </Flex>
           {this.state.scenes.map(x => (
             <SceneBlock
@@ -150,7 +166,7 @@ class App extends React.Component {
               width={1}
               name={x}
               height={timeline.length * timeBlockLengthInPx + timeOffsetInPx}
-              events={groupBy(events, e => e.venue.toLowerCase())[x]}
+              events={groupBy(events, e => e.venue.toLowerCase())[x] || []}
             />
           ))}
         </Flex>

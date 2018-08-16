@@ -8,8 +8,8 @@ export default [
     name: "The Kooks"
   },
   {
-    start: DateTime.fromISO("2018-08-30T17:00"),
-    end: DateTime.fromISO("2018-08-30T18:00"),
+    start: DateTime.fromISO("2018-08-30T16:30"),
+    end: DateTime.fromISO("2018-08-30T18:30"),
     venue: "Stora",
     name: "Wihe"
   },
@@ -20,9 +20,9 @@ export default [
     name: "Tomas ledin"
   },
   {
-    start: DateTime.fromISO("2018-08-31T12:00"),
+    start: DateTime.fromISO("2018-08-30T12:00"),
     end: DateTime.fromISO("2018-08-30T13:00"),
-    venue: "Bryggan",
+    venue: "Klippan",
     name: "Yunton Beach"
   },
   {
@@ -68,9 +68,15 @@ export default [
     name: "KEN"
   },
   {
-    start: DateTime.fromISO("2018-09-01T18:45"),
-    end: DateTime.fromISO("2018-09-01T20:00"),
+    start: DateTime.fromISO("2018-09-01T19:45"),
+    end: DateTime.fromISO("2018-09-01T21:00"),
     venue: "Klippan",
     name: "Icekiid"
+  },
+  {
+    start: DateTime.fromISO("2018-09-02T01:45"),
+    end: DateTime.fromISO("2018-09-02T04:00"),
+    venue: "satelliten",
+    name: "RAVE"
   }
 ];
