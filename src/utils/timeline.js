@@ -2,17 +2,16 @@ export const createTimeLine = (
   fromTime,
   toTime,
   interval,
-  inclusive = true
 ) => {
   let minutes = (toTime - fromTime) / 1000 / 60;
-  if (inclusive) {
-    minutes = minutes + interval;
-  }
+  const start = new Date(fromTime.getTime());
   const timeline = [];
-
-  for (var i = 0; i < minutes / interval; i++) {
-    fromTime.setMinutes(fromTime.getMinutes() + interval);
-    timeline.push(new Date(fromTime));
+  const iterations = minutes/interval;
+  for (var i = 0; i <= iterations; i++) {
+    if(i !== 0) {
+      start.setMinutes(start.getMinutes() + interval);
+    }
+    timeline.push(new Date(start.getTime()));
   }
   return timeline;
 };

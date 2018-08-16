@@ -4,7 +4,8 @@ import groupBy from "lodash/groupBy";
 import styled, { injectGlobal } from "styled-components";
 import { Box, Flex } from "grid-styled";
 import { DateTime } from "luxon";
-import { createTimeLine, formatTime } from "./helpers";
+import { formatTime } from "./helpers";
+import VenueBlock from './components/VenueBlock';
 import events from "./events";
 import TimeLine from "./components/Timeline";
 
@@ -15,106 +16,32 @@ injectGlobal`
 `;
 
 const timeOffsetInPx = 30;
-const timeBlockLengthInPx = 100;
-const timelineInterval = 60;
+const timeBlockLengthInPx = 60;
+const timelineInterval = 30;
+
 const start = new Date();
 start.setHours(8);
 start.setMinutes(0);
 const end = new Date();
 end.setDate(end.getDate() + 1);
-end.setHours(5);
+end.setHours(4);
 end.setMinutes(0);
 
 let nStart = new Date(start.getTime());
 let nEnd = new Date(end.getTime());
-let timeline = createTimeLine(
-  new Date(start),
-  new Date(end),
-  timelineInterval
-).map(formatTime);
-// <TimeLine startTime="10:00" endTime="03:00" intervalInMinutes="60" />
+
 // Toggla dagar
-// Kolla diff funktionerna
-// Fixa eventkomponent
 // sätt närmaste datum aktivt.
 // sticky header
-const Block = styled(props => {
-  return <Box {...props} />;
-})`
-  height: ${p => p.height}px;
-  @media (max-width: 900px) {
-    flex: ${p => (p.expanded ? "1" : "0")} 0 40px;
-  }
-  border-left: 1px solid white;
-  color: white;
-`;
+
 const Filler = styled.div`
  background: transparent;
  height: ${p => p.height}px;
  border-bottom: 1px solid white;
 `;
 
-const SceneHeader = styled.div`
-  height: ${p => p.height}px;
-  width: 100%;
-  border-bottom: 1px solid white;
-  line-height: 30px;
-  position: sticky;
-`;
-
-class SceneBlock extends React.Component {
-  getDiffOffsetInPx(start, index, name) {
-    let diff = start.diff(index, "minutes").toObject().minutes;
-    if (diff < 0) {
-      diff = diff + 24 * 60;
-    }
-    return (diff || 0) * (timeBlockLengthInPx / timelineInterval);
-  }
-  getEventLengthInPx(start, end) {
-    let diff = end.diff(start, "minutes").toObject().minutes;
-    return (diff || 0) * (timeBlockLengthInPx / timelineInterval);
-  }
-  render() {
-    const { expanded, events } = this.props;
-    return (
-      <Block {...this.props}>
-        <Flex css={{ position: "relative" }} flexDirection="column">
-          <SceneHeader height={timeOffsetInPx}>
-            {!expanded
-              ? this.props.name[0].toUpperCase()
-              : this.props.name.toUpperCase()}
-          </SceneHeader>
-          {events.map(({ name, start, end }) => {
-            return (
-              <Box
-                css={{
-                  zIndex: 9,
-                  position: "absolute",
-                  left: "2px",
-                  right: "2px",
-                  overflow: "hidden",
-                  height: this.getEventLengthInPx(start, end) + "px",
-                  top: `${timeOffsetInPx +
-                    this.getDiffOffsetInPx(
-                      start,
-                      start.set({ hour: 8, minutes: 0 }),
-                      name
-                    )}px `
-                }}
-                bg="orange"
-              >
-                <span style={{ whiteSpace: "nowrap" }}>{name}</span>
-                {start.toLocaleString({ hour: "numeric", minute: "numeric" })}
-                {end.toLocaleString({ hour: "numeric", minute: "numeric" })}
-              </Box>
-            );
-          })}
-        </Flex>
-      </Block>
-    );
-  }
-}
-
+const getVenues = (events) => Array.from(new Set(events.map(x => x.venue.toLowerCase())));
+  
 const formatEvents = events =>
   events.map(x => ({
     ...x,
@@ -124,16 +51,17 @@ const formatEvents = events =>
 class App extends React.Component {
   state = {
     active: "stora",
-    scenes: ["stora", "klippan", "bryggan", "satelliten"],
+    venues: getVenues(this.props.events),
     events: formatEvents(this.props.events),
     day: DateTime.local(2018, 8, 30)
   };
 
-  setActive(color) {
-    this.setState({ active: color });
+  setActive(venue) {
+    this.setState({ active: venue });
   }
 
   render() {
+    const { venues, active } = this.state;
     return (
       <div className="App">
         <Flex bg="black">
@@ -143,29 +71,33 @@ class App extends React.Component {
               formatter={formatTime}
               fromTime={nStart}
               toTime={nEnd}
-              interval={60}
+              interval={timelineInterval}
             >
               {(x, i) => (
                 <Box
+                  key={i}
                   color="white"
                   p={1}
                   css={{
                     height: timeBlockLengthInPx + "px",
-                    borderBottom: "1px solid white"
+                    borderBottom: `1px solid rgba(255,255,255, ${i % 2 !== 0 ? 1: 0.5})`
                   }}
                 >
-                  {x}
+                  {i % 2 === 0 ? x : ""}
                 </Box>
               )}
             </TimeLine>
           </Flex>
-          {this.state.scenes.map(x => (
-            <SceneBlock
+          {venues.map(x => (
+            <VenueBlock
+              key={x}
+              timeBlockLengthInPx={timeBlockLengthInPx}
+              timelineInterval={timelineInterval}
+              timeOffsetInPx={timeOffsetInPx}
               onClick={() => this.setActive(x)}
-              expanded={this.state.active === x}
+              expanded={active === x}
               width={1}
               name={x}
-              height={timeline.length * timeBlockLengthInPx + timeOffsetInPx}
               events={groupBy(events, e => e.venue.toLowerCase())[x] || []}
             />
           ))}
